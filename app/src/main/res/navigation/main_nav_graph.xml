@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_nav_graph"
+    app:startDestination="@id/rateListFragment">
+
+    <fragment
+        android:id="@+id/rateDetailsFragment"
+        android:name="pl.mclojek.currency_converter.presentation.fragment.RateDetailsFragment"
+        android:label="fragment_rate_details"
+        tools:layout="@layout/fragment_rate_details" />
+    <fragment
+        android:id="@+id/rateListFragment"
+        android:name="pl.mclojek.currency_converter.presentation.fragment.RateListFragment"
+        android:label="fragment_rate_list"
+        tools:layout="@layout/fragment_rate_list" >
+        <action
+            android:id="@+id/action_rateListFragment_to_rateDetailsFragment"
+            app:destination="@id/rateDetailsFragment" />
+    </fragment>
+</navigation>
