@@ -1,34 +1,24 @@
 package pl.mclojek.currency_converter.presentation.adapter
 
-import android.graphics.Color
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.paging.PagingDataAdapter
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import pl.mclojek.currency_converter.R
 import pl.mclojek.currency_converter.domain.model.DailyRateSummary
 import pl.mclojek.currency_converter.domain.model.Rate
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-class RateRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-
-    val items: MutableList<DailyRateSummary> = arrayListOf(
-        DailyRateSummary(LocalDate.now(), "USD", listOf(Rate("GBP",0.444f), Rate("PLN" ,0.522f))),
-        DailyRateSummary(LocalDate.now(), "USD", listOf(Rate("GBP",0.444f), Rate("PLN" ,0.522f))),
-        DailyRateSummary(LocalDate.now(), "USD", listOf(Rate("GBP",0.444f), Rate("PLN" ,0.522f))),
-    )
-
-    fun addItem(summary: DailyRateSummary) {
-        items.add(summary)
-        notifyItemRangeInserted(itemCount - (items[0].rates.size + 1), itemCount)
-    }
+class RateRecyclerAdapter :
+    PagingDataAdapter<DailyRateSummary, RecyclerView.ViewHolder>(COMPARATOR) {
 
     override fun getItemViewType(position: Int): Int {
-        return if (items.isEmpty()) 0
-        else if (position % (items[0].rates.size + 1) == 0) 0
+        return if (getItem(0) == null) 0
+        else if (position % (getItem(0)!!.rates.size + 1) == 0) 0
         else 1
     }
 
@@ -49,23 +39,24 @@ class RateRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         Log.d("tagtagtag", "binduje ${position}")
+
         when (holder) {
-            is DayViewHolder -> holder.bind(items[position / (items[0].rates.size + 1)])
+            is DayViewHolder -> holder.bind(getItem(position / (getItem(0)!!.rates.size + 1))!!)
             is RateViewHolder -> {
-                val dayIndex = position / (items[0].rates.size + 1)
-                val rateIndex = position % (items[0].rates.size + 1) - 1
+                val dayIndex = position / (getItem(0)!!.rates.size + 1)
+                val rateIndex = position % (getItem(0)!!.rates.size + 1) - 1
 
                 println("pos: ${position} di: ${dayIndex} ri: ${rateIndex}")
 
-                holder.bind(items[dayIndex].rates[rateIndex])
+                holder.bind(getItem(0)!!.rates[rateIndex])
             }
         }
     }
-
-    override fun getItemCount(): Int {
-        return if (items.isEmpty()) 0
-        else items.size * (items[0].rates.size + 1)
-    }
+//
+//    override fun getItemCount(): Int {
+//        return if (getItem(0) == null) 0
+//        else itemCountsize * (items[0].rates.size + 1)
+//    }
 
     class DayViewHolder(val v: View) : RecyclerView.ViewHolder(v) {
         fun bind(summary: DailyRateSummary) {
@@ -77,6 +68,24 @@ class RateRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     class RateViewHolder(val v: View) : RecyclerView.ViewHolder(v) {
         fun bind(rate: Rate) {
             v.findViewById<TextView>(R.id.rate_tv).text = "${rate.currency} : ${rate.value}"
+        }
+    }
+
+    companion object {
+        private val COMPARATOR = object : DiffUtil.ItemCallback<DailyRateSummary>() {
+            override fun areItemsTheSame(
+                oldItem: DailyRateSummary,
+                newItem: DailyRateSummary
+            ): Boolean {
+                return oldItem.day == newItem.day
+            }
+
+            override fun areContentsTheSame(
+                oldItem: DailyRateSummary,
+                newItem: DailyRateSummary
+            ): Boolean {
+                return oldItem.rates.size == newItem.rates.size && oldItem.day == newItem.day
+            }
         }
     }
 
